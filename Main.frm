@@ -5,7 +5,7 @@ Begin VB.Form Form1
    ClientHeight    =   1005
    ClientLeft      =   8280
    ClientTop       =   4080
-   ClientWidth     =   6435
+   ClientWidth     =   6630
    BeginProperty Font 
       Name            =   "宋体"
       Size            =   6.75
@@ -19,19 +19,54 @@ Begin VB.Form Form1
    LinkTopic       =   "Form1"
    MaxButton       =   0   'False
    ScaleHeight     =   1005
-   ScaleWidth      =   6435
+   ScaleWidth      =   6630
+   Begin VB.CommandButton BtnSave 
+      Caption         =   "保存"
+      BeginProperty Font 
+         Name            =   "宋体"
+         Size            =   9
+         Charset         =   134
+         Weight          =   400
+         Underline       =   0   'False
+         Italic          =   0   'False
+         Strikethrough   =   0   'False
+      EndProperty
+      Height          =   255
+      Left            =   5640
+      TabIndex        =   12
+      Top             =   720
+      Width           =   855
+   End
    Begin VB.CheckBox Vaild 
       Caption         =   "是否生效"
-      Height          =   255
+      BeginProperty Font 
+         Name            =   "宋体"
+         Size            =   9
+         Charset         =   134
+         Weight          =   400
+         Underline       =   0   'False
+         Italic          =   0   'False
+         Strikethrough   =   0   'False
+      EndProperty
+      Height          =   180
       Left            =   5520
       TabIndex        =   11
-      Top             =   0
+      Top             =   120
       Value           =   1  'Checked
-      Width           =   855
+      Width           =   1095
    End
    Begin VB.CheckBox AutoPaste 
       Caption         =   "自动粘贴"
-      Height          =   255
+      BeginProperty Font 
+         Name            =   "宋体"
+         Size            =   9
+         Charset         =   134
+         Weight          =   400
+         Underline       =   0   'False
+         Italic          =   0   'False
+         Strikethrough   =   0   'False
+      EndProperty
+      Height          =   180
       Left            =   5520
       TabIndex        =   10
       Top             =   360
@@ -235,6 +270,53 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 
+Private Sub LoadFileData()
+    On Error GoTo Error
+    Dim strA As String
+    Dim curIndex As Integer
+    Dim firstIn As Boolean
+    
+    Open App.Path & "\Paste++.txt" For Input As #1
+    Do While Not EOF(1)
+        Line Input #1, strA
+        If UCase(Trim(strA)) = "SECTION" Then
+            If EOF(1) Then GoTo Error
+            Line Input #1, strA
+            curIndex = CInt(Trim(strA))
+            firstIn = True
+        ElseIf UCase(Trim(strA)) = "END SECTION" Then
+            curIndex = -1
+            firstIn = False
+        ElseIf curIndex >= 0 Then
+            If firstIn Then
+                Text(curIndex).Text = strA
+            Else
+                Text(curIndex).Text = Text(curIndex).Text & vbCrLf & strA
+            End If
+            
+            firstIn = False
+        End If
+    Loop
+    Close #1
+Error:
+End Sub
+
+Private Sub BtnSave_Click()
+    On Error GoTo Error
+    
+    Open App.Path & "\Paste++.txt" For Output As #1
+    
+    For i = 0 To 4 Step 1
+        Print #1, "SECTION" & vbCrLf & Trim(Str(i))
+        Print #1, Text(i).Text
+        Print #1, "END SECTION"
+    Next i
+    
+    Close #1
+Error:
+    
+End Sub
+
 Private Sub Form_Load()
     SetHotKey
     
@@ -248,6 +330,9 @@ Private Sub Form_Load()
     
     'Me.Width = Screen.Width
     'Frame1.Move Me.Width - Frame1.Width
+    
+    LoadFileData
+    
 End Sub
 
 
@@ -274,3 +359,4 @@ End Function
 Private Sub Text_DblClick(Index As Integer)
     Paste (Index)
 End Sub
+
